@@ -1,9 +1,8 @@
 # -------------------------------------------------------------------
-# GitHub Actions workflow for libcdaydiff  (CMake version)
+# GitHub Actions workflow for libcdaydiff – ULTRA STABLE & VERBOSE
 # -------------------------------------------------------------------
-# Builds, tests, and publishes the static library on Linux (64/32),
-# macOS (x86_64 / arm64), and Windows (64/32 via MSYS2).
-# On version tags (v*) a GitHub Release is created automatically.
+# Build + test static library on Linux (64/32), macOS (Intel/ARM),
+# Windows (64/32 via MSYS2). Automatic release on v* tags.
 # -------------------------------------------------------------------
 
 name: Build, Test, and Release
@@ -16,15 +15,12 @@ on:
     branches: [master]
 
 jobs:
-  # ===================================================================
-  # Build matrix
-  # ===================================================================
   build:
     strategy:
-      fail-fast: false
+      fail-fast: false               # Continue other builds if one fails
       matrix:
         include:
-          # ---------- Linux 64‑bit ----------
+          # ---------- Linux 64-bit ----------
           - os: ubuntu-latest
             arch: x86_64
             artifact: libcdaydiff-linux-x86_64
@@ -32,7 +28,7 @@ jobs:
             msystem: ""
             extra-setup: ""
 
-          # ---------- Linux 32‑bit (multilib cross‑compile) ----------
+          # ---------- Linux 32-bit (multilib) ----------
           - os: ubuntu-latest
             arch: i686
             artifact: libcdaydiff-linux-i686
@@ -40,23 +36,23 @@ jobs:
             msystem: ""
             extra-setup: "sudo apt-get update && sudo apt-get install -y gcc-multilib"
 
-          # ---------- macOS x86_64 (Intel) ----------
-          - os: macos-13 # Intel runner
+          # ---------- macOS Intel (x86_64) ----------
+          - os: macos-13              # Intel runner
             arch: x86_64
             artifact: libcdaydiff-macos-x86_64
             cflags: "-arch x86_64"
             msystem: ""
             extra-setup: ""
 
-          # ---------- macOS ARM64 (Apple Silicon) ----------
-          - os: macos-latest # ARM runner
+          # ---------- macOS Apple Silicon (ARM64) ----------
+          - os: macos-latest          # ARM runner
             arch: arm64
             artifact: libcdaydiff-macos-arm64
             cflags: "-arch arm64"
             msystem: ""
             extra-setup: ""
 
-          # ---------- Windows 64‑bit (MSYS2 MINGW64) ----------
+          # ---------- Windows 64-bit (MINGW64) ----------
           - os: windows-latest
             arch: x86_64
             artifact: libcdaydiff-windows-x86_64
@@ -64,7 +60,7 @@ jobs:
             msystem: MINGW64
             extra-setup: ""
 
-          # ---------- Windows 32‑bit (MSYS2 MINGW32) ----------
+          # ---------- Windows 32-bit (MINGW32) ----------
           - os: windows-latest
             arch: i686
             artifact: libcdaydiff-windows-i686
@@ -77,12 +73,20 @@ jobs:
       ARTIFACT_NAME: ${{ matrix.artifact }}
 
     steps:
+      # ----------------------------------------------------------
+      # 1. Checkout
+      # ----------------------------------------------------------
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # ============================================================
-      # Platform‑specific setup
-      # ============================================================
+      # ----------------------------------------------------------
+      # 2. Platform setup
+      # ----------------------------------------------------------
+      - name: Extra setup (Linux 32-bit multilib)
+        if: runner.os == 'Linux' && matrix.arch == 'i686'
+        run: |
+          set -euxo pipefail
+          ${{ matrix.extra-setup }}
 
       - name: Setup MSYS2 (Windows)
         if: runner.os == 'Windows'
@@ -96,45 +100,45 @@ jobs:
           update: true
           path-type: strict
 
-      - name: Extra setup (Linux 32‑bit multilib)
-        if: runner.os == 'Linux' && matrix.arch == 'i686'
-        run: ${{ matrix.extra-setup }}
-
-      # ============================================================
-      # Build static library + unit test binary
-      # ============================================================
-
+      # ----------------------------------------------------------
+      # 3. Build (CMake) – verbose output
+      # ----------------------------------------------------------
       - name: Configure CMake (Linux/macOS)
         if: runner.os != 'Windows'
         run: |
+          set -euxo pipefail
           cmake -B build \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_FLAGS="-O2 -g ${{ matrix.cflags }}" \
             -DBUILD_SHARED_LIBS=OFF
 
-      - name: Build (Linux/macOS)
+      - name: Build targets (Linux/macOS)
         if: runner.os != 'Windows'
-        run: cmake --build build --target cdaydiff_static test_date
+        run: |
+          set -euxo pipefail
+          cmake --build build --target cdaydiff_static test_date --verbose
 
       - name: Configure CMake (Windows MSYS2)
         if: runner.os == 'Windows'
         shell: msys2 {0}
         run: |
+          set -euxo pipefail
           cmake -B build \
             -G "MSYS Makefiles" \
             -DCMAKE_BUILD_TYPE=Release \
             -DCMAKE_C_FLAGS="-O2 -g ${{ matrix.cflags }}" \
             -DBUILD_SHARED_LIBS=OFF
 
-      - name: Build (Windows MSYS2)
+      - name: Build targets (Windows MSYS2)
         if: runner.os == 'Windows'
         shell: msys2 {0}
-        run: cmake --build build --target cdaydiff_static test_date
+        run: |
+          set -euxo pipefail
+          cmake --build build --target cdaydiff_static test_date --verbose
 
-      # ============================================================
-      # Run unit tests
-      # ============================================================
-
+      # ----------------------------------------------------------
+      # 4. Run unit tests
+      # ----------------------------------------------------------
       - name: Run unit tests (Linux/macOS)
         if: runner.os != 'Windows'
         run: ./build/test_date
@@ -144,31 +148,29 @@ jobs:
         shell: msys2 {0}
         run: ./build/test_date.exe
 
-      # ============================================================
-      # Prepare and upload artifact
-      # ============================================================
-
+      # ----------------------------------------------------------
+      # 5. Prepare and upload artifact (BASH shell forced for all OS)
+      # ----------------------------------------------------------
       - name: Prepare artifact folder
+        shell: bash                # Ensures Bash syntax even on Windows
         run: |
+          set -euxo pipefail
           mkdir -p artifact
-          # Pastikan static library ada
           if [ ! -f build/libcdaydiff.a ]; then
             echo "ERROR: libcdaydiff.a not found!" >&2
             exit 1
           fi
-          cp build/libcdaydiff.a artifact/
-          cp src/include/libcdaydiff.h artifact/
+          cp -v build/libcdaydiff.a artifact/
+          cp -v src/include/libcdaydiff.h artifact/
           echo "Platform: ${{ matrix.artifact }}" > artifact/PLATFORM.txt
+          echo "Artifact folder contents:"
+          ls -la artifact/
 
-      - name: Upload build artifact
+      - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: ${{ env.ARTIFACT_NAME }}
           path: artifact/
-
-      # Optional: bersihkan (tidak wajib, workspace akan di-reset)
-      # - name: Clean
-      #   run: rm -rf build
 
   # ===================================================================
   # Release Job (only on version tags)
@@ -183,22 +185,24 @@ jobs:
       - name: Download all artifacts
         uses: actions/download-artifact@v4
 
-      - name: Show artifact structure
+      - name: Display artifact structure
         run: ls -R
 
       - name: Package each artifact into ZIP
         run: |
+          set -euxo pipefail
           for dir in libcdaydiff-*; do
             if [ -d "$dir" ]; then
-              echo "Packaging $dir..."
+              echo "Zipping $dir ..."
               (cd "$dir" && zip -r "../${dir}.zip" .)
             fi
           done
-          echo "Created ZIP archives:"
+          echo "ZIP archives:"
           ls -lh *.zip
 
       - name: Generate SHA256 checksums
         run: |
+          set -euxo pipefail
           rm -f SHA256SUMS
           for zipfile in libcdaydiff-*.zip; do
             [ -f "$zipfile" ] && sha256sum "$zipfile" >> SHA256SUMS
@@ -215,13 +219,13 @@ jobs:
           body: |
             ## libcdaydiff Release ${{ github.ref_name }}
 
-            Pre‑built **static library** (`libcdaydiff.a`) + header for:
+            Pre-built **static library** (`libcdaydiff.a`) + header for:
 
             - **Linux** (x86_64, i686)
             - **macOS** (x86_64, ARM64)
-            - **Windows** (x86_64, i686) via MinGW‑w64
+            - **Windows** (x86_64, i686) via MinGW-w64
 
-            All builds compiled with `-O2 -g` (optimised + debug symbols).
+            All builds compiled with `-O2 -g` (optimized + debug symbols).
 
             ### How to use
             1. Download the ZIP for your platform.
@@ -231,8 +235,10 @@ jobs:
                gcc -std=c99 -I. myapp.c libcdaydiff.a -o myapp
                ```
 
-            ### Integrity
-            Verify the downloaded files with:
+            ### Integrity verification
+
+            Run:
+
             ```bash
             sha256sum -c SHA256SUMS
-            ```
+            ````
