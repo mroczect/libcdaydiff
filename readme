@@ -1,0 +1,240 @@
+LIBCDAYDIFF
+===========
+
+A portable, pure C library for date arithmetic, parsing, formatting, and
+timezone-aware operations.
+
+OVERVIEW
+--------
+
+libcdaydiff provides a comprehensive set of functions to work with dates and
+date‑times in C. It handles:
+
+  - Parsing dates from strings with automatic or explicit delimiters
+  - Validation of dates including leap year rules
+  - Date differences (days inclusive/exclusive and full year-month-day breakdown)
+  - Date manipulation (add days, months, years)
+  - Day‑of‑week, day‑of‑year, ISO week number calculations
+  - Comparison (equals, before/after)
+  - String formatting with strftime‑like specifiers
+  - Timezone support: local, UTC, and arbitrary offset
+  - Epoch (Unix time) conversion both UTC and local
+
+The library is written in C99, has no external dependencies, and compiles on
+any platform with a C compiler and standard library.
+
+FEATURES
+--------
+
+  * Robust parsing – auto‑detects delimiter or accepts a custom delimiter set.
+  * Full validation – checks day/month/year ranges, leap years.
+  * Date difference – inclusive and exclusive day counts; full year/month/day
+    breakdown.
+  * Date arithmetic – add/subtract days, months, years with proper end‑of‑month
+    pinning.
+  * ISO week number – conforms to ISO 8601.
+  * Flexible formatting – supports %Y, %m, %d, %B, %b, %A, %a, %H, %M, %S, %z,
+    and %%.
+  * Timezone handling – get current local/UTC DateTime, or arbitrary offset.
+  * Epoch conversion – to/from Unix time (seconds since 1970‑01‑01).
+  * Error reporting – every function returns a clear error code, with a
+    human‑readable string available via date_error_string().
+  * C++ compatible – header wrapped in extern "C".
+
+GETTING STARTED
+---------------
+
+Prerequisites:
+  - A C99 compiler (GCC, Clang, MSVC 2013+, etc.)
+  - GNU Make (or compatible) for the provided Makefile
+  - Standard POSIX tools (ar, install) for building and installing
+
+Building from Source:
+
+  git clone https://github.com/mroczect/libcdaydiff.git
+  cd libcdaydiff
+  make
+
+This produces:
+  - libcdaydiff.a   – static library
+
+Object files are placed in the obj/ directory.
+
+Available Make targets:
+
+  all       Build the static library (default)
+  clean     Remove all build artifacts (obj/ and libcdaydiff.a)
+  install   Install the library and header to /usr/local
+
+Override the compiler or flags:
+
+  make CC=clang CFLAGS="-O3 -march=native"
+
+Linking Against the Library:
+
+After building, include the header and link with -lcdaydiff.
+
+  #include <libcdaydiff.h>
+
+  int main(void) {
+      Date d;
+      date_parse("01.01.2025", NULL, &d);
+      // ...
+      return 0;
+  }
+
+Compile and link:
+
+  gcc -I/usr/local/include myapp.c -L/usr/local/lib -lcdaydiff -o myapp
+
+USAGE
+-----
+
+The library is built as a static library. There is no standalone executable
+included; the provided test.c acts as a comprehensive unit test suite.
+
+To run the tests:
+
+  make
+  gcc -I src/include test.c libcdaydiff.a -o test
+  ./test
+
+All tests should pass if the library is functioning correctly.
+
+API REFERENCE
+-------------
+
+Data Types
+
+  Date        – struct { int day; int month; int year; }
+  DateTime    – Date plus hour, minute, second, and tz_offset (minutes)
+  DateDiff    – struct { int years; int months; int days; }
+  DateError   – enum with error codes (DATE_OK, DATE_ERR_NULL_POINTER, etc.)
+
+Core Validation
+
+  int date_is_leap_year(int year);
+  int date_days_in_month(int month, int year);
+  int date_validate(int day, int month, int year);
+
+Parsing
+
+  int date_parse(const char *str, const char *delims, Date *out);
+
+  If delims is NULL, the function auto‑detects the delimiter (first non‑digit
+  character). Returns DATE_OK on success, DATE_ERR_PARSE if the format is
+  invalid, or DATE_ERR_INVALID_DATE if the date does not exist.
+
+Date Difference
+
+  int date_diff_days(const Date *d1, const Date *d2, int64_t *result);
+      – Inclusive day count (same day returns 1).
+  int date_diff_days_excl(const Date *d1, const Date *d2, int64_t *result);
+      – Exclusive day count (same day returns 0).
+  int date_diff_full(const Date *d1, const Date *d2, DateDiff *out);
+      – Full year/month/day breakdown. d1 must be earlier than d2.
+
+Manipulation
+
+  int date_add_days(const Date *in, int64_t n, Date *out);
+  int date_add_months(const Date *in, int n, Date *out);
+  int date_add_years(const Date *in, int n, Date *out);
+
+  All functions handle end‑of‑month pinning (e.g., 31 Jan + 1 month → 28/29 Feb).
+
+Information
+
+  int date_day_of_week(const Date *d);   // 0=Sunday … 6=Saturday
+  int date_day_of_year(const Date *d);
+  int date_week_number_iso(const Date *d);
+
+Comparison
+
+  int date_compare(const Date *d1, const Date *d2);  // -1, 0, 1
+  int date_equals(const Date *d1, const Date *d2);   // 1 if equal
+
+Current Time
+
+  int date_now(Date *out);
+  int date_now_utc(Date *out);
+  int datetime_now(DateTime *out);
+  int datetime_now_utc(DateTime *out);
+  int datetime_now_tz(DateTime *out, int offset_minutes);
+
+Formatting
+
+  int date_format(const Date *d, const char *fmt, char *buf, size_t bufsize);
+  int datetime_format(const DateTime *dt, const char *fmt, char *buf,
+                      size_t bufsize);
+
+  Format specifiers:
+    %Y – 4‑digit year, %m – 2‑digit month, %d – 2‑digit day
+    %B – full month name, %b – abbreviated month
+    %A – full weekday name, %a – abbreviated weekday
+    %H – hour (00‑23), %M – minute, %S – second
+    %z – timezone offset (±HHMM)
+    %% – literal '%'
+
+Epoch Conversion
+
+  int date_to_epoch_utc(const Date *d, int64_t *epoch_secs);
+  int date_from_epoch_utc(int64_t epoch_secs, Date *out);
+  int date_to_epoch_local(const Date *d, int64_t *epoch_secs);
+  int date_from_epoch_local(int64_t epoch_secs, Date *out);
+
+Error Handling
+
+  const char *date_error_string(DateError err);
+
+  Returns a static string describing the error code.
+
+PROJECT STRUCTURE
+-----------------
+
+  libcdaydiff/
+  ├── src/
+  │   ├── include/
+  │   │   └── libcdaydiff.h          # Public API header
+  │   ├── internal/
+  │   │   └── libcdaydiff_internal.h # Internal helpers
+  │   ├── core.c                     # Validation, leap year, epoch helpers
+  │   ├── parser.c                   # String-to-Date parsing
+  │   ├── diff.c                     # Date difference functions
+  │   ├── manip.c                    # Date arithmetic
+  │   ├── info.c                     # Day‑of‑week, day‑of‑year, ISO week
+  │   ├── comparison.c               # date_compare, date_equals
+  │   ├── fmt.c                      # date_format, datetime_format
+  │   ├── epoch.c                    # Epoch conversion
+  │   ├── tz.c                       # Timezone and current time
+  │   └── error.c                    # Error string mapping
+  ├── test.c                         # Unit test suite
+  ├── Makefile                       # Build automation
+  ├── LICENSE
+  └── README
+
+VERSIONING
+----------
+
+This project follows Semantic Versioning (https://semver.org). The current
+version is 1.0.0.
+
+CONTRIBUTING
+------------
+
+Contributions are welcome. Please open an issue or submit a pull request on
+GitHub. Ensure that:
+
+  - Code compiles cleanly with -Wall -Wextra -std=c99.
+  - The unit test suite passes without regressions.
+  - New functionality is covered by additional tests.
+
+LICENSE
+-------
+
+This library is released under the GPL-3.0 License. See the LICENSE file for the
+full license text.
+
+CONTACT
+-------
+
+Repository: https://github.com/mroczect/libcdaydiff

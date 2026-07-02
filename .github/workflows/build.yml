@@ -1,0 +1,219 @@
+# -------------------------------------------------------------------
+# GitHub Actions workflow for libcdaydiff – full cross-platform build
+#
+# Builds and tests on Linux (64/32), macOS (64), Windows (64/32).
+# On version tags (v*), publishes all artifacts as a GitHub Release
+# with a single SHA256SUMS for integrity verification.
+# -------------------------------------------------------------------
+name: Build, Test, and Release
+
+on:
+  push:
+    branches: [master]
+    tags: ["v*"]
+  pull_request:
+    branches: [master]
+
+jobs:
+  # ===================================================================
+  # Build matrix
+  # ===================================================================
+  build:
+    strategy:
+      fail-fast: false # continue other builds even if one fails
+      matrix:
+        include:
+          # Linux 64-bit (native)
+          - os: ubuntu-latest
+            arch: x86_64
+            artifact: libcdaydiff-linux-x86_64
+            cflags: ""
+            msystem: ""
+            extra-setup: ""
+          # Linux 32-bit (cross-compile from 64-bit host)
+          - os: ubuntu-latest
+            arch: i686
+            artifact: libcdaydiff-linux-i686
+            cflags: "-m32"
+            msystem: ""
+            extra-setup: "sudo apt-get update && sudo apt-get install -y gcc-multilib"
+          # macOS 64-bit (native)
+          - os: macos-latest
+            arch: x86_64
+            artifact: libcdaydiff-macos-x86_64
+            cflags: ""
+            msystem: ""
+            extra-setup: ""
+          # macOS ARM64 (cross-compile native on Apple Silicon runner)
+          - os: macos-latest
+            arch: arm64
+            artifact: libcdaydiff-macos-arm64
+            cflags: "-arch arm64"
+            msystem: ""
+            extra-setup: ""
+          # Windows 64-bit (MSYS2 MINGW64)
+          - os: windows-latest
+            arch: x86_64
+            artifact: libcdaydiff-windows-x86_64
+            cflags: ""
+            msystem: MINGW64
+            extra-setup: ""
+          # Windows 32-bit (MSYS2 MINGW32)
+          - os: windows-latest
+            arch: i686
+            artifact: libcdaydiff-windows-i686
+            cflags: ""
+            msystem: MINGW32
+            extra-setup: ""
+
+    runs-on: ${{ matrix.os }}
+    env:
+      ARTIFACT_NAME: ${{ matrix.artifact }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # ============================================================
+      # Linux / macOS setup
+      # ============================================================
+      - name: Extra setup (Linux 32-bit multilib)
+        if: runner.os == 'Linux' && matrix.arch == 'i686'
+        run: ${{ matrix.extra-setup }}
+
+      - name: Install macOS cross-compilation tools (if needed)
+        if: runner.os == 'macOS' && matrix.arch == 'arm64'
+        run: |
+          # Usually no extra setup; Xcode CLT provides universal binaries.
+          echo "Using -arch arm64"
+
+      # ============================================================
+      # Windows MSYS2 setup
+      # ============================================================
+      - name: Setup MSYS2 (Windows)
+        if: runner.os == 'Windows'
+        uses: msys2/setup-msys2@v2
+        with:
+          msystem: ${{ matrix.msystem }}
+          install: >-
+            base-devel
+            mingw-w64-${{ matrix.arch }}-gcc
+            mingw-w64-${{ matrix.arch }}-make
+          update: true
+          path-type: strict
+
+      # ============================================================
+      # Build library (all platforms)
+      # ============================================================
+      - name: Build library (Linux/macOS)
+        if: runner.os != 'Windows'
+        env:
+          EXTRA_CFLAGS: ${{ matrix.cflags }}
+        run: |
+          make CC=gcc CFLAGS="-Wall -Wextra -O2 -g -std=c99 -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE $EXTRA_CFLAGS"
+
+      - name: Build library (Windows MSYS2)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        env:
+          EXTRA_CFLAGS: ${{ matrix.cflags }}
+        run: |
+          # Use the mingw gcc from PATH
+          make CC=gcc CFLAGS="-Wall -Wextra -O2 -g -std=c99 -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE $EXTRA_CFLAGS"
+
+      # ============================================================
+      # Run unit tests
+      # ============================================================
+      - name: Run unit tests (Linux/macOS)
+        if: runner.os != 'Windows'
+        env:
+          EXTRA_CFLAGS: ${{ matrix.cflags }}
+        run: |
+          gcc -I src/include test.c libcdaydiff.a -o test $EXTRA_CFLAGS
+          ./test
+
+      - name: Run unit tests (Windows MSYS2)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        env:
+          EXTRA_CFLAGS: ${{ matrix.cflags }}
+        run: |
+          gcc -I src/include test.c libcdaydiff.a -o test.exe $EXTRA_CFLAGS
+          ./test.exe
+
+      # ============================================================
+      # Prepare artifact
+      # ============================================================
+      - name: Prepare artifact folder
+        run: |
+          mkdir -p artifact
+          cp libcdaydiff.a artifact/
+          # On Windows, also include a .lib or just the .a (MinGW .a is fine)
+          # Include a readme for each platform?
+          echo "Platform: ${{ matrix.artifact }}" > artifact/PLATFORM.txt
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ env.ARTIFACT_NAME }}
+          path: artifact/
+
+      - name: Clean up
+        if: runner.os != 'Windows'
+        run: make clean
+      - name: Clean up (Windows)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: make clean
+
+  # ===================================================================
+  # Release Job (only on version tags)
+  # ===================================================================
+  release:
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+
+      - name: Display artifact structure
+        run: ls -R
+
+      - name: Package each artifact into ZIP
+        run: |
+          for dir in libcdaydiff-*; do
+            if [ -d "$dir" ]; then
+              echo "Packaging $dir..."
+              (cd "$dir" && zip -r "../${dir}.zip" .)
+            fi
+          done
+          echo "Created ZIP archives:"
+          ls -lh *.zip
+
+      - name: Generate SHA256 checksums
+        run: |
+          rm -f SHA256SUMS
+          for zipfile in libcdaydiff-*.zip; do
+            [ -f "$zipfile" ] && sha256sum "$zipfile" >> SHA256SUMS
+          done
+          cat SHA256SUMS
+
+      - name: Create GitHub Release
+        uses: ncipollo/release-action@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          artifacts: "libcdaydiff-*.zip,SHA256SUMS"
+          body: |
+            ## libcdaydiff Release ${{ github.ref_name }}
+
+            Pre-built static library for:
+            - Linux (x86_64, i686)
+            - macOS (x86_64, arm64)
+            - Windows (x86_64, i686)
+
+            ### SHA256 Checksums
+            See the `SHA256SUMS` file for integrity verification.
