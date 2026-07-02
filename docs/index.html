@@ -1,0 +1,830 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<title>libcdaydiff – Portable C Date &amp; Time Library</title>
+		<meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1" />
+		<meta
+			name="description"
+			content="libcdaydiff – Portable C99 library for date arithmetic, parsing, formatting, and timezone-aware operations. Full API reference and examples."
+		/>
+		<meta
+			name="viewport"
+			content="width=device-width, initial-scale=1.0, minimum-scale=1.0, viewport-fit=cover"
+		/>
+
+		<!-- Docsify base (heavily overridden) -->
+		<link
+			rel="stylesheet"
+			href="//cdn.jsdelivr.net/npm/docsify@4/themes/vue.css"
+		/>
+
+		<!-- JetBrains Mono -->
+		<link rel="preconnect" href="https://fonts.googleapis.com" />
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+		<link
+			href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:ital,wght@0,400;0,500;0,600;0,700;1,400;1,500&display=swap"
+			rel="stylesheet"
+		/>
+
+		<style>
+			/* ============================================================
+        MAN PAGE × VERCEL DARK – Terminal minimalism
+        No glass, no shadows, no noise – pure text.
+        Animations: fast, smooth, barely-there micro-interactions.
+        ============================================================ */
+
+			:root {
+				--bg: #f9fafb;
+				--bg-alt: #f3f4f6;
+				--fg: #18181b;
+				--fg-dim: #3f3f46;
+				--fg-subtle: #71717a;
+				--accent: #0d6484;
+				--accent-dim: #0f766e;
+				--accent-ghost: rgba(13, 148, 136, 0.08);
+				--warn: #d97706;
+				--border: #e4e4e7;
+				--font-mono:
+					"JetBrains Mono", "SF Mono", "Menlo", "Consolas", monospace;
+				--font-size: 13px;
+				--line-height: 1.65;
+				--content-width: 780px;
+				--transition-fast: 0.08s cubic-bezier(0.4, 0, 0.2, 1);
+				--transition-smooth: 0.12s cubic-bezier(0.4, 0, 0.2, 1);
+				--transition-spring: 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+			}
+
+			*,
+			*::before,
+			*::after {
+				box-sizing: border-box;
+			}
+
+			html {
+				scroll-behavior: smooth;
+				scrollbar-gutter: stable;
+			}
+
+			body {
+				margin: 0;
+				background: var(--bg);
+				color: var(--fg);
+				font-family: var(--font-mono);
+				font-size: var(--font-size);
+				line-height: var(--line-height);
+				-webkit-font-smoothing: antialiased;
+				-moz-osx-font-smoothing: grayscale;
+				opacity: 0;
+				animation: bodyIn 0.25s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+			}
+
+			@keyframes bodyIn {
+				to {
+					opacity: 1;
+				}
+			}
+
+			/* ---- Scrollbar – whisper ---- */
+			::-webkit-scrollbar {
+				width: 3px;
+				height: 3px;
+			}
+			::-webkit-scrollbar-track {
+				background: transparent;
+			}
+			::-webkit-scrollbar-thumb {
+				background: var(--fg-subtle);
+				border-radius: 0;
+				transition: background var(--transition-fast);
+			}
+			::-webkit-scrollbar-thumb:hover {
+				background: var(--fg-dim);
+			}
+
+			::selection {
+				background: rgba(94, 234, 212, 0.15);
+				color: var(--accent);
+			}
+
+			/* ---- SIDEBAR – Man page TOC ---- */
+			.sidebar {
+				background: var(--bg-alt) !important;
+				border-right: 1px solid var(--border) !important;
+				width: 240px !important;
+				padding: 20px 0 !important;
+				font-family: var(--font-mono) !important;
+				transition:
+					transform var(--transition-smooth),
+					opacity var(--transition-smooth);
+			}
+
+			.sidebar > .app-name {
+				display: flex;
+				align-items: center;
+				gap: 6px;
+				padding: 8px 20px 20px;
+				margin-bottom: 10px;
+				border-bottom: 1px solid var(--border);
+			}
+
+			.app-name-link {
+				font-family: var(--font-mono) !important;
+				font-size: 0.9rem !important;
+				font-weight: 600 !important;
+				color: var(--accent) !important;
+				text-decoration: none !important;
+				letter-spacing: 0;
+				transition: color var(--transition-fast);
+			}
+			.app-name-link::before {
+				content: "~/";
+				color: var(--fg-dim);
+				transition: color var(--transition-fast);
+			}
+			.app-name-link:hover {
+				color: var(--accent-dim) !important;
+			}
+			.app-name-link:hover::before {
+				color: var(--accent);
+			}
+
+			/* Sidebar nav */
+			.sidebar-nav {
+				padding: 0 12px !important;
+			}
+			.sidebar-nav li {
+				list-style: none;
+				margin: 0;
+				padding: 0;
+			}
+			.sidebar-nav li > a {
+				font-family: var(--font-mono) !important;
+				font-weight: 400 !important;
+				font-size: 0.78rem !important;
+				padding: 5px 10px !important;
+				display: block !important;
+				border-radius: 0 !important;
+				color: var(--fg-dim) !important;
+				text-decoration: none !important;
+				transition:
+					color var(--transition-fast),
+					padding-left var(--transition-smooth),
+					border-color var(--transition-fast),
+					background var(--transition-fast);
+				border-left: 1px solid transparent;
+				margin-left: 2px;
+				position: relative;
+			}
+			.sidebar-nav li > a:hover {
+				color: var(--fg) !important;
+				background: var(--accent-ghost) !important;
+				border-left-color: var(--fg-subtle);
+				padding-left: 13px !important;
+			}
+			.sidebar-nav li.active > a {
+				color: var(--accent) !important;
+				font-weight: 500 !important;
+				background: transparent !important;
+				border-left: 2px solid var(--accent);
+				margin-left: 0;
+				padding-left: 12px !important;
+				transition:
+					color var(--transition-fast),
+					border-color var(--transition-fast);
+			}
+			.sidebar-nav li.active > a::before {
+				content: none;
+			}
+			.sidebar-nav li.active > a:hover {
+				border-left-color: var(--accent-dim);
+				color: var(--accent-dim) !important;
+			}
+			.sidebar-nav ul ul li > a {
+				padding-left: 24px !important;
+				font-size: 0.74rem !important;
+				color: var(--fg-subtle) !important;
+			}
+			.sidebar-nav ul ul li > a:hover {
+				padding-left: 27px !important;
+				border-left-color: var(--fg-subtle);
+			}
+			.sidebar-nav ul ul li.active > a {
+				color: var(--accent-dim) !important;
+				border-left: 2px solid var(--accent-dim);
+				padding-left: 24px !important;
+			}
+
+			/* ---- SEARCH – understated ---- */
+			.search {
+				border-bottom: 1px solid var(--border) !important;
+				padding: 6px 12px !important;
+				margin: 0 8px 10px !important;
+			}
+			.search input {
+				font-family: var(--font-mono) !important;
+				background: transparent !important;
+				color: var(--fg) !important;
+				border: 1px solid var(--border) !important;
+				border-radius: 0 !important;
+				padding: 6px 8px !important;
+				font-size: 0.76rem !important;
+				width: 100%;
+				outline: none;
+				transition:
+					border-color var(--transition-fast),
+					background var(--transition-fast);
+				caret-color: var(--accent);
+			}
+			.search input:focus {
+				border-color: var(--accent-dim) !important;
+				background: rgba(255, 255, 255, 0.01) !important;
+				box-shadow: none;
+			}
+			.search input::placeholder {
+				color: var(--fg-subtle);
+				font-style: italic;
+				transition: color var(--transition-fast);
+			}
+			.search input:focus::placeholder {
+				color: var(--fg-dim);
+			}
+			.search .results-panel {
+				background: var(--bg-alt) !important;
+				border: 1px solid var(--border) !important;
+				border-radius: 0 !important;
+				font-family: var(--font-mono) !important;
+				font-size: 0.74rem !important;
+				animation: dropIn 0.1s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+			@keyframes dropIn {
+				from {
+					opacity: 0;
+					transform: translateY(-4px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+			.search .results-panel .matching-post {
+				border-bottom: 1px solid var(--border) !important;
+				padding: 5px 10px !important;
+				transition: background var(--transition-fast);
+			}
+			.search .results-panel .matching-post:hover {
+				background: var(--accent-ghost) !important;
+			}
+			.search .results-panel .matching-post .h2 {
+				color: var(--accent) !important;
+			}
+
+			/* ---- MAIN CONTENT ---- */
+			.content {
+				background: transparent !important;
+				max-width: var(--content-width);
+				padding: 36px 40px 20px !important;
+				margin: 0 auto;
+				animation: contentSlideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+			@keyframes contentSlideIn {
+				from {
+					opacity: 0;
+					transform: translateY(6px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* ---- HEADINGS ---- */
+			.markdown-section h1,
+			.markdown-section h2,
+			.markdown-section h3,
+			.markdown-section h4,
+			.markdown-section h5,
+			.markdown-section h6 {
+				font-family: var(--font-mono) !important;
+				font-weight: 700 !important;
+				color: var(--accent) !important;
+				text-transform: uppercase;
+				letter-spacing: 0.05em;
+				margin-top: 2rem !important;
+				margin-bottom: 0.5rem !important;
+				padding: 0 !important;
+				border: none !important;
+				transition: color var(--transition-fast);
+			}
+			.markdown-section h1 {
+				font-size: 1.1rem !important;
+				color: var(--accent) !important;
+				border-bottom: 1px solid var(--accent-dim) !important;
+				padding-bottom: 4px !important;
+				margin-bottom: 1rem !important;
+			}
+			.markdown-section h2 {
+				font-size: 0.95rem !important;
+				color: var(--accent-dim) !important;
+				margin-top: 1.8rem !important;
+				border-bottom: 1px solid var(--border) !important;
+				padding-bottom: 2px !important;
+			}
+			.markdown-section h3 {
+				font-size: 0.88rem !important;
+				color: var(--fg) !important;
+				font-weight: 600 !important;
+				text-transform: none;
+				letter-spacing: 0;
+			}
+
+			/* ---- TEXT ---- */
+			.markdown-section p {
+				margin: 0.4rem 0 0.8rem;
+				color: var(--fg);
+				transition: color var(--transition-fast);
+			}
+			.markdown-section ul,
+			.markdown-section ol {
+				padding-left: 1.6rem;
+			}
+			.markdown-section li {
+				margin: 0.2rem 0;
+				transition: color var(--transition-fast);
+			}
+			.markdown-section li::marker {
+				color: var(--fg-dim);
+				transition: color var(--transition-fast);
+			}
+			.markdown-section strong {
+				color: var(--fg);
+				font-weight: 700;
+			}
+			.markdown-section em {
+				color: var(--accent-dim);
+				font-style: italic;
+			}
+
+			/* ---- LINKS – crisp underline animation ---- */
+			.markdown-section a {
+				color: var(--accent);
+				text-decoration: underline;
+				text-underline-offset: 3px;
+				text-decoration-color: var(--accent-dim);
+				transition:
+					color var(--transition-fast),
+					text-decoration-color var(--transition-fast),
+					text-underline-offset var(--transition-smooth);
+			}
+			.markdown-section a:hover {
+				color: var(--accent-dim);
+				text-decoration-color: var(--accent);
+				text-underline-offset: 5px;
+			}
+
+			/* ---- INLINE CODE ---- */
+			.markdown-section code {
+				font-family: var(--font-mono) !important;
+				background: rgba(255, 255, 255, 0.03) !important;
+				color: var(--warn) !important;
+				padding: 1px 5px !important;
+				border-radius: 0 !important;
+				font-size: 0.9em !important;
+				border: 1px solid var(--border);
+				transition:
+					border-color var(--transition-fast),
+					background var(--transition-fast),
+					color var(--transition-fast);
+			}
+			.markdown-section code:hover {
+				border-color: var(--fg-subtle);
+				background: rgba(255, 255, 255, 0.05) !important;
+			}
+
+			/* ---- CODE BLOCKS ---- */
+			.markdown-section pre {
+				background: var(--bg-alt) !important;
+				border: 1px solid var(--border) !important;
+				border-radius: 0 !important;
+				padding: 14px 16px !important;
+				overflow-x: auto;
+				font-family: var(--font-mono) !important;
+				font-size: 0.82rem !important;
+				line-height: 1.5 !important;
+				box-shadow: none;
+				transition: border-color var(--transition-fast);
+				position: relative;
+			}
+			.markdown-section pre:hover {
+				border-color: var(--fg-subtle);
+			}
+			.markdown-section pre::before,
+			.markdown-section pre::after {
+				content: none;
+			}
+			.markdown-section pre code {
+				background: transparent !important;
+				border: none !important;
+				padding: 0 !important;
+				color: var(--fg) !important;
+				font-size: inherit !important;
+				white-space: pre;
+				border-radius: 0 !important;
+			}
+
+			/* ---- BLOCKQUOTES ---- */
+			.markdown-section blockquote {
+				border-left: 2px solid var(--accent-dim) !important;
+				padding: 6px 16px !important;
+				margin: 1rem 0 !important;
+				background: transparent !important;
+				color: var(--fg-dim) !important;
+				border-radius: 0 !important;
+				font-style: normal;
+				font-family: var(--font-mono);
+				font-size: 0.85rem;
+				transition:
+					border-color var(--transition-fast),
+					color var(--transition-fast);
+			}
+			.markdown-section blockquote:hover {
+				border-left-color: var(--accent);
+				color: var(--fg) !important;
+			}
+
+			/* ---- TABLES ---- */
+			.markdown-section table {
+				border-collapse: collapse;
+				width: 100%;
+				margin: 1rem 0;
+				font-size: 0.82rem;
+				border: 1px solid var(--border);
+				font-family: var(--font-mono);
+				transition: border-color var(--transition-fast);
+			}
+			.markdown-section th {
+				background: var(--bg-alt);
+				color: var(--accent);
+				font-weight: 600;
+				padding: 8px 12px;
+				border: 1px solid var(--border);
+				text-align: left;
+				text-transform: uppercase;
+				letter-spacing: 0.04em;
+				font-size: 0.7rem;
+				transition: color var(--transition-fast);
+			}
+			.markdown-section td {
+				padding: 6px 12px;
+				border: 1px solid var(--border);
+				color: var(--fg-dim);
+				transition:
+					color var(--transition-fast),
+					background var(--transition-fast);
+			}
+			.markdown-section tr:nth-child(even) td {
+				background: rgba(255, 255, 255, 0.012);
+			}
+			.markdown-section tbody tr {
+				transition: background var(--transition-fast);
+			}
+			.markdown-section tbody tr:hover td {
+				background: var(--accent-ghost);
+				color: var(--fg);
+			}
+
+			/* ---- HR ---- */
+			.markdown-section hr {
+				border: none;
+				border-top: 1px solid var(--border);
+				margin: 2rem 0;
+				transition: border-color var(--transition-fast);
+			}
+
+			/* ---- BUTTONS ---- */
+			button,
+			.btn {
+				font-family: var(--font-mono) !important;
+				background: var(--bg-alt);
+				color: var(--fg);
+				border: 1px solid var(--border);
+				padding: 5px 14px;
+				border-radius: 0;
+				cursor: pointer;
+				font-size: 0.78rem;
+				transition:
+					background var(--transition-fast),
+					border-color var(--transition-fast),
+					color var(--transition-fast),
+					transform var(--transition-spring);
+				transform: translateY(0);
+			}
+			button:hover,
+			.btn:hover {
+				background: var(--bg);
+				border-color: var(--accent-dim);
+				color: var(--accent);
+				transform: translateY(-1px);
+			}
+			button:active,
+			.btn:active {
+				transform: translateY(0);
+				transition: transform 0.05s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+
+			/* ---- FOOTER ---- */
+			.docsify-footer {
+				text-align: left !important;
+				font-size: 0.7rem !important;
+				color: var(--fg-subtle) !important;
+				margin-top: 3rem !important;
+				padding: 1.2rem 0 !important;
+				border-top: 1px solid var(--border) !important;
+				font-family: var(--font-mono) !important;
+				letter-spacing: 0;
+				transition:
+					color var(--transition-fast),
+					border-color var(--transition-fast);
+				animation: footerIn 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+			@keyframes footerIn {
+				from {
+					opacity: 0;
+					transform: translateY(8px);
+				}
+				to {
+					opacity: 1;
+					transform: translateY(0);
+				}
+			}
+
+			/* ---- GITHUB CORNER ---- */
+			.github-corner svg {
+				fill: var(--border) !important;
+				transition: fill var(--transition-fast);
+			}
+			.github-corner:hover svg {
+				fill: var(--fg-subtle) !important;
+			}
+			.github-corner:hover .octo-arm {
+				animation: octoWave 0.35s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+			}
+			@keyframes octoWave {
+				0%,
+				100% {
+					transform: rotate(0);
+				}
+				30% {
+					transform: rotate(-18deg);
+				}
+				60% {
+					transform: rotate(8deg);
+				}
+				85% {
+					transform: rotate(-3deg);
+				}
+			}
+
+			/* ---- PAGE TRANSITION OVERLAY ---- */
+			.page-transition-overlay {
+				position: fixed;
+				top: 0;
+				left: 0;
+				width: 100%;
+				height: 100%;
+				background: var(--bg);
+				z-index: 9999;
+				pointer-events: none;
+				opacity: 0;
+				transition: opacity 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+			}
+			.page-transition-overlay.active {
+				opacity: 1;
+			}
+
+			/* ---- RESPONSIVE ---- */
+			@media (max-width: 768px) {
+				.sidebar {
+					width: 100% !important;
+					border-right: none !important;
+					border-bottom: 1px solid var(--border) !important;
+					max-height: 35vh;
+					overflow-y: auto;
+					transition:
+						max-height var(--transition-smooth),
+						opacity var(--transition-fast);
+				}
+				.sidebar.collapsed {
+					max-height: 0;
+					opacity: 0;
+					overflow: hidden;
+				}
+				.content {
+					padding: 16px 14px !important;
+					max-width: 100%;
+					animation: contentSlideInMobile 0.25s
+						cubic-bezier(0.4, 0, 0.2, 1);
+				}
+				@keyframes contentSlideInMobile {
+					from {
+						opacity: 0;
+						transform: translateY(4px);
+					}
+					to {
+						opacity: 1;
+						transform: translateY(0);
+					}
+				}
+				.markdown-section pre {
+					padding: 10px 12px !important;
+					font-size: 0.74rem !important;
+					overflow-x: auto;
+					-webkit-overflow-scrolling: touch;
+				}
+				.markdown-section table {
+					font-size: 0.7rem;
+					display: block;
+					overflow-x: auto;
+					-webkit-overflow-scrolling: touch;
+				}
+			}
+
+			@media (max-width: 480px) {
+				.sidebar {
+					max-height: 28vh;
+					padding: 12px 0 !important;
+				}
+				.sidebar-nav li > a {
+					font-size: 0.72rem !important;
+					padding: 4px 8px !important;
+				}
+				.content {
+					padding: 12px 8px !important;
+				}
+				.markdown-section h1 {
+					font-size: 0.95rem !important;
+				}
+				.markdown-section h2 {
+					font-size: 0.82rem !important;
+				}
+			}
+
+			/* ---- FOCUS RING – subtle ---- */
+			:focus-visible {
+				outline: 1px solid var(--accent-dim);
+				outline-offset: 2px;
+				transition: outline-color var(--transition-fast);
+			}
+			:focus:not(:focus-visible) {
+				outline: none;
+			}
+
+			/* ---- SMOOTH NAV INDICATOR PULSE ---- */
+			@keyframes navPulse {
+				0%,
+				100% {
+					border-left-color: var(--accent);
+				}
+				50% {
+					border-left-color: var(--accent-dim);
+				}
+			}
+			.sidebar-nav li.active > a {
+				animation: navPulse 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+			}
+		</style>
+	</head>
+	<body>
+		<div id="app"></div>
+
+		<!-- Page transition overlay -->
+		<div class="page-transition-overlay" id="pageOverlay"></div>
+
+		<script>
+			window.$docsify = {
+				name: "libcdaydiff",
+				repo: "https://github.com/mroczect/libcdaydiff",
+				loadSidebar: true,
+				alias: {
+					"/.*/_sidebar.md": "/_sidebar.md",
+				},
+				subMaxLevel: 3,
+				auto2top: true,
+				autoHeader: false,
+				search: {
+					paths: "auto",
+					placeholder: "/search",
+					noData: "No matches.",
+					depth: 4,
+				},
+				nameLink: {
+					"/": "#/",
+				},
+				repoLabel: "src",
+				// Smooth instant page transitions
+				routerMode: "history",
+			};
+		</script>
+
+		<!-- Docsify core -->
+		<script src="//cdn.jsdelivr.net/npm/docsify@4"></script>
+
+		<!-- Footer injection + page transition handler -->
+		<script>
+			(function () {
+				// Footer injection
+				var observer = new MutationObserver(function () {
+					var content = document.querySelector(".content");
+					if (content && !document.querySelector(".docsify-footer")) {
+						var footer = document.createElement("div");
+						footer.className = "docsify-footer";
+						footer.innerHTML =
+							'GPL-3.0 · &copy; 2026 mroczect · <span style="color:var(--fg-subtle);">libcdaydiff v1.0.0</span>';
+						content.appendChild(footer);
+						observer.disconnect();
+					}
+				});
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true,
+				});
+
+				// ---- Page transition: ultra-fast flicker overlay ----
+				var overlay = document.getElementById("pageOverlay");
+				var lastPath = location.href;
+
+				function triggerTransition() {
+					if (!overlay) return;
+					overlay.classList.add("active");
+					requestAnimationFrame(function () {
+						requestAnimationFrame(function () {
+							overlay.classList.remove("active");
+						});
+					});
+				}
+
+				// Watch for Docsify route changes
+				var routeObserver = new MutationObserver(function () {
+					var currentPath = location.href;
+					if (currentPath !== lastPath) {
+						lastPath = currentPath;
+						triggerTransition();
+					}
+				});
+
+				// Also intercept clicks on sidebar links for snappy feel
+				document.addEventListener("click", function (e) {
+					var link = e.target.closest(".sidebar-nav a");
+					if (link && link.href && link.href !== location.href) {
+						triggerTransition();
+					}
+				});
+
+				// Watch body for content swaps
+				routeObserver.observe(document.body, {
+					childList: true,
+					subtree: true,
+				});
+
+				// ---- Mobile sidebar toggle with smooth animation ----
+				var sidebarToggled = false;
+				document.addEventListener("click", function (e) {
+					// Docsify's default sidebar toggle button
+					if (
+						e.target.closest(".sidebar-toggle") ||
+						e.target.closest(".sidebar-toggle-button")
+					) {
+						var sidebar = document.querySelector(".sidebar");
+						if (sidebar && window.innerWidth <= 768) {
+							sidebarToggled = !sidebarToggled;
+							if (sidebarToggled) {
+								sidebar.classList.add("collapsed");
+							} else {
+								sidebar.classList.remove("collapsed");
+							}
+						}
+					}
+				});
+
+				// ---- Instant scroll-to-top on nav (Docsify auto2top enhancement) ----
+				document.addEventListener("click", function (e) {
+					var link = e.target.closest(".sidebar-nav a");
+					if (link) {
+						var contentEl = document.querySelector(".content");
+						if (contentEl) {
+							contentEl.scrollTop = 0;
+							window.scrollTo({ top: 0, behavior: "instant" });
+						}
+					}
+				});
+
+				console.log(
+					"%clibcdaydiff%c · man page ready · %cv1.0.0",
+					"color:#5eead4;font-weight:700;",
+					"color:#cfcfd1;",
+					"color:#85858a;",
+				);
+			})();
+		</script>
+	</body>
+</html>

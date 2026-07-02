@@ -17,7 +17,7 @@ on:
 jobs:
   build:
     strategy:
-      fail-fast: false               # Continue other builds if one fails
+      fail-fast: false # Continue other builds if one fails
       matrix:
         include:
           # ---------- Linux 64-bit ----------
@@ -37,7 +37,7 @@ jobs:
             extra-setup: "sudo apt-get update && sudo apt-get install -y gcc-multilib"
 
           # ---------- macOS Intel (x86_64) ----------
-          - os: macos-latest              # Intel runner
+          - os: macos-latest # Intel runner
             arch: x86_64
             artifact: libcdaydiff-macos-x86_64
             cflags: "-arch x86_64"
@@ -45,7 +45,7 @@ jobs:
             extra-setup: ""
 
           # ---------- macOS Apple Silicon (ARM64) ----------
-          - os: macos-latest          # ARM runner
+          - os: macos-latest # ARM runner
             arch: arm64
             artifact: libcdaydiff-macos-arm64
             cflags: "-arch arm64"
@@ -152,7 +152,7 @@ jobs:
       # 5. Prepare and upload artifact (BASH shell forced for all OS)
       # ----------------------------------------------------------
       - name: Prepare artifact folder
-        shell: bash                # Ensures Bash syntax even on Windows
+        shell: bash # Ensures Bash syntax even on Windows
         run: |
           set -euxo pipefail
           mkdir -p artifact

@@ -2,7 +2,7 @@
 LIBCDAYDIFF – Portable C Date & Time Library
 ================================================================================
 
-Version: 1.0.5
+Version: 1.1.0
 License: GNU General Public License v3.0
 Repository: https://github.com/mroczect/libcdaydiff
 
@@ -40,30 +40,31 @@ TABLE OF CONTENTS
 13. CONTACT
 
 ================================================================================
+
 1. OVERVIEW
-================================================================================
+   \================================================================================
 
 libcdaydiff is a pure C (C99) library that provides a complete set of
 functions for working with dates and times. It requires no external
 dependencies and compiles on any platform with a standard C compiler.
 
 Capabilities include:
-  - Parsing dates from strings with automatic or user‑defined delimiters
-  - Validation of dates (including leap year rules)
-  - Date differences: inclusive / exclusive day count, full year‑month‑day
-    breakdown
-  - Date arithmetic: add/subtract days, months, years (with end‑of‑month pinning)
-  - Day‑of‑week, day‑of‑year, ISO 8601 week number
-  - Comparison (equals, before/after)
-  - String formatting with printf‑like specifiers
-  - Real‑time clock: local, UTC, and custom timezone offset
-  - Unix epoch conversion (UTC and local)
-  - Clear error handling with descriptive strings
+
+- Parsing dates from strings with automatic or user‑defined delimiters
+- Validation of dates (including leap year rules)
+- Date differences: inclusive / exclusive day count, full year‑month‑day
+  breakdown
+- Date arithmetic: add/subtract days, months, years (with end‑of‑month pinning)
+- Day‑of‑week, day‑of‑year, ISO 8601 week number
+- Comparison (equals, before/after)
+- String formatting with printf‑like specifiers
+- Real‑time clock: local, UTC, and custom timezone offset
+- Unix epoch conversion (UTC and local)
+- Clear error handling with descriptive strings
 
 The library builds as both a static and a shared library.
 
-================================================================================
-2. FEATURES
+================================================================================ 2. FEATURES
 ================================================================================
 
 - Robust parsing: auto‑detects delimiter (`.`, `/`, `-`, ` `, etc.) or
@@ -85,20 +86,19 @@ The library builds as both a static and a shared library.
 - Portable: tested on Linux, macOS, Windows (MSVC ≥ 2013, MinGW‑w64).
 - Build system: CMake (primary) and GNU Make (legacy).
 
-================================================================================
-3. SYSTEM REQUIREMENTS
+================================================================================ 3. SYSTEM REQUIREMENTS
 ================================================================================
 
 - A C99 compiler (GCC, Clang, MSVC 2013 or later)
-- CMake 3.10+ (for CMake build)   —   optional if using Make
+- CMake 3.10+ (for CMake build) — optional if using Make
 - GNU Make (for legacy Makefile)
 - Standard C library and POSIX headers (time.h, string.h, etc.)
 
-================================================================================
-4. INSTALLATION
+================================================================================ 4. INSTALLATION
 ================================================================================
 
-----------------------------------------------------------------------
+---
+
 4.1 Using CMake (recommended)
 ----------------------------------------------------------------------
 
@@ -147,7 +147,8 @@ On Windows (MinGW‑w64):
     mingw32-make
     mingw32-make install
 
-----------------------------------------------------------------------
+---
+
 4.2 Using GNU Make (legacy)
 ----------------------------------------------------------------------
 
@@ -169,7 +170,8 @@ To override compiler or flags:
 
     make CC=clang CFLAGS="-O3 -march=native"
 
-----------------------------------------------------------------------
+---
+
 4.3 Manual Compilation
 ----------------------------------------------------------------------
 
@@ -183,8 +185,7 @@ directly. Example for a static library:
 
 Then link your program with -lcdaydiff.
 
-================================================================================
-5. QUICK START EXAMPLE
+================================================================================ 5. QUICK START EXAMPLE
 ================================================================================
 
 Save the following as example.c:
@@ -217,15 +218,15 @@ If you built locally without installing, adjust include and library paths:
 
     gcc -std=c99 -Isrc/include example.c libcdaydiff.a -o example
 
-================================================================================
-6. API REFERENCE
+================================================================================ 6. API REFERENCE
 ================================================================================
 
 All functions return a value of type "DateError" (an int) unless otherwise
 noted. On success they return DATE_OK (0). On error they return one of the
 error codes described below.
 
-----------------------------------------------------------------------
+---
+
 6.1 Data Types
 ----------------------------------------------------------------------
 
@@ -260,7 +261,8 @@ error codes described below.
         DATE_ERR_FORMAT
     } DateError;
 
-----------------------------------------------------------------------
+---
+
 6.2 Error Codes
 ----------------------------------------------------------------------
 
@@ -273,21 +275,23 @@ error codes described below.
     DATE_ERR_TIMEZONE          – Timezone error (currently unused).
     DATE_ERR_FORMAT            – Format string invalid or buffer too small.
 
-----------------------------------------------------------------------
+---
+
 6.3 Core Validation Functions
 ----------------------------------------------------------------------
 
 int date_is_leap_year(int year);
-    Returns 1 if 'year' is a leap year, 0 otherwise.
+Returns 1 if 'year' is a leap year, 0 otherwise.
 
 int date_days_in_month(int month, int year);
-    Returns the number of days in the given month (1–12) of the given year.
-    Returns 0 for invalid month.
+Returns the number of days in the given month (1–12) of the given year.
+Returns 0 for invalid month.
 
 int date_validate(int day, int month, int year);
-    Returns 1 if the date is valid (1900 ≤ year ≤ 9999, etc.), else 0.
+Returns 1 if the date is valid (1900 ≤ year ≤ 9999, etc.), else 0.
 
-----------------------------------------------------------------------
+---
+
 6.4 Parsing
 ----------------------------------------------------------------------
 
@@ -312,144 +316,151 @@ int date_parse(const char *str, const char *delims, Date *out);
     convention because many real‑world applications prefer it. If you need
     year‑first, you can swap the fields after parsing.
 
-----------------------------------------------------------------------
+---
+
 6.5 Date Difference
 ----------------------------------------------------------------------
 
 int date_diff_days(const Date *d1, const Date *d2, int64_t *result);
-    Inclusive difference. The start date is counted as 1. If d1 == d2,
-    result = 1. Example: 01.01–01.01 → 1.
+Inclusive difference. The start date is counted as 1. If d1 == d2,
+result = 1. Example: 01.01–01.01 → 1.
 
 int date_diff_days_excl(const Date *d1, const Date *d2, int64_t *result);
-    Exclusive difference. The start date is not counted. Same day gives 0.
+Exclusive difference. The start date is not counted. Same day gives 0.
 
 int date_diff_full(const Date *d1, const Date *d2, DateDiff *out);
-    Computes the difference in years, months, and remaining days. d1 must
-    be earlier than d2 (or equal). If d1 > d2, returns DATE_ERR_INVALID_DATE.
-    The algorithm first adds years, then months, then counts remaining days.
-    Result is always such that d1 + (years, months, days) = d2, with days
-    less than a month.
+Computes the difference in years, months, and remaining days. d1 must
+be earlier than d2 (or equal). If d1 > d2, returns DATE_ERR_INVALID_DATE.
+The algorithm first adds years, then months, then counts remaining days.
+Result is always such that d1 + (years, months, days) = d2, with days
+less than a month.
 
-----------------------------------------------------------------------
+---
+
 6.6 Date Manipulation
 ----------------------------------------------------------------------
 
 int date_add_days(const Date *in, int64_t n, Date *out);
-    Adds n days to 'in'. Negative n subtracts. Uses internal epoch
-    calculation, supports large range as long as final year stays within
-    1900–9999.
+Adds n days to 'in'. Negative n subtracts. Uses internal epoch
+calculation, supports large range as long as final year stays within
+1900–9999.
 
 int date_add_months(const Date *in, int n, Date *out);
-    Adds n months. If the resulting day exceeds the month's length, the day
-    is pinned to the last valid day (e.g., 31 Jan + 1 month → 28/29 Feb).
+Adds n months. If the resulting day exceeds the month's length, the day
+is pinned to the last valid day (e.g., 31 Jan + 1 month → 28/29 Feb).
 
 int date_add_years(const Date *in, int n, Date *out);
-    Adds n years. For dates like 29 Feb, if the target year is not a leap year,
-    the day becomes 28 Feb.
+Adds n years. For dates like 29 Feb, if the target year is not a leap year,
+the day becomes 28 Feb.
 
 All manipulation functions return DATE_ERR_OVERFLOW if the resulting year
 falls outside [1900, 9999].
 
-----------------------------------------------------------------------
+---
+
 6.7 Date Information
 ----------------------------------------------------------------------
 
 int date_day_of_week(const Date *d);
-    Returns 0 for Sunday, 1 for Monday, ..., 6 for Saturday.
-    Uses Zeller's congruence.
+Returns 0 for Sunday, 1 for Monday, ..., 6 for Saturday.
+Uses Zeller's congruence.
 
 int date_day_of_year(const Date *d);
-    Returns 1–365 (366 in leap years).
+Returns 1–365 (366 in leap years).
 
 int date_week_number_iso(const Date *d);
-    Returns ISO 8601 week number (1–53). Uses the "Thursday of the week"
-    method for correctness across year boundaries.
+Returns ISO 8601 week number (1–53). Uses the "Thursday of the week"
+method for correctness across year boundaries.
 
-----------------------------------------------------------------------
+---
+
 6.8 Comparison
 ----------------------------------------------------------------------
 
 int date_compare(const Date *d1, const Date *d2);
-    Compares two dates. Returns:
-        -1  if d1 is earlier than d2,
-         0  if equal,
-         1  if d1 is later than d2.
+Compares two dates. Returns:
+-1 if d1 is earlier than d2,
+0 if equal,
+1 if d1 is later than d2.
 
 int date_equals(const Date *d1, const Date *d2);
-    Returns 1 if the dates are exactly equal, 0 otherwise.
+Returns 1 if the dates are exactly equal, 0 otherwise.
 
-----------------------------------------------------------------------
+---
+
 6.9 Current Time / Timezone
 ----------------------------------------------------------------------
 
 int date_now(Date *out);
-    Writes today's date (local time) into out.
+Writes today's date (local time) into out.
 
 int date_now_utc(Date *out);
-    Writes today's date (UTC) into out.
+Writes today's date (UTC) into out.
 
 int datetime_now(DateTime *out);
-    Writes current local date and time, including timezone offset (minutes).
+Writes current local date and time, including timezone offset (minutes).
 
 int datetime_now_utc(DateTime *out);
-    Writes current UTC date and time, offset set to 0.
+Writes current UTC date and time, offset set to 0.
 
 int datetime_now_tz(DateTime *out, int offset_minutes);
-    Writes current UTC date/time adjusted by the given offset.
-    offset_minutes can be positive (east of UTC) or negative.
-    The resulting 'out' contains the date/time at that offset.
+Writes current UTC date/time adjusted by the given offset.
+offset_minutes can be positive (east of UTC) or negative.
+The resulting 'out' contains the date/time at that offset.
 
 All time functions return DATE_ERR_NULL_POINTER if out is NULL.
 On platforms that lack gmtime_r/localtime_r (older MSVC), the library
 uses the equivalent _s functions internally for thread safety.
 
-----------------------------------------------------------------------
+---
+
 6.10 Formatting
 ----------------------------------------------------------------------
 
 int date_format(const Date *d, const char *fmt, char *buf, size_t bufsize);
-    Formats a date into buf according to fmt. See FORMAT SPECIFIERS below.
+Formats a date into buf according to fmt. See FORMAT SPECIFIERS below.
 
 int datetime_format(const DateTime *dt, const char *fmt, char *buf,
-                    size_t bufsize);
-    Formats a date‑time into buf. Supports additional time specifiers.
+size_t bufsize);
+Formats a date‑time into buf. Supports additional time specifiers.
 
 Both functions return:
-    DATE_OK            on success.
-    DATE_ERR_NULL_POINTER if d (or dt), fmt, or buf is NULL.
-    DATE_ERR_FORMAT    if bufsize is 0, the format string is invalid,
-                       or the output does not fit (buffer too small).
+DATE_OK on success.
+DATE_ERR_NULL_POINTER if d (or dt), fmt, or buf is NULL.
+DATE_ERR_FORMAT if bufsize is 0, the format string is invalid,
+or the output does not fit (buffer too small).
 
-----------------------------------------------------------------------
+---
+
 6.11 Epoch Conversion
 ----------------------------------------------------------------------
 
 int date_to_epoch_utc(const Date *d, int64_t *epoch_secs);
-    Converts a date (assumed 00:00:00 UTC) to Unix seconds since 1970‑01‑01.
+Converts a date (assumed 00:00:00 UTC) to Unix seconds since 1970‑01‑01.
 
 int date_from_epoch_utc(int64_t epoch_secs, Date *out);
-    Converts Unix seconds back to a UTC date. Only non‑negative epoch
-    values are accepted.
+Converts Unix seconds back to a UTC date. Only non‑negative epoch
+values are accepted.
 
 int date_to_epoch_local(const Date *d, int64_t *epoch_secs);
-    Converts a date (local time 00:00:00) to Unix seconds.
+Converts a date (local time 00:00:00) to Unix seconds.
 
 int date_from_epoch_local(int64_t epoch_secs, Date *out);
-    Converts Unix seconds back to a local date.
+Converts Unix seconds back to a local date.
 
 These functions use the system's local time offset. On platforms where
 the offset cannot be determined, they behave like the UTC versions.
 
-----------------------------------------------------------------------
+---
+
 6.12 Error String
 ----------------------------------------------------------------------
 
 const char *date_error_string(DateError err);
-    Returns a static, human‑readable description of the error code.
-    Do not free the returned pointer.
+Returns a static, human‑readable description of the error code.
+Do not free the returned pointer.
 
-================================================================================
-7. FORMAT SPECIFIERS
+================================================================================ 7. FORMAT SPECIFIERS
 ================================================================================
 
 The following specifiers are supported by date_format() and
@@ -471,13 +482,12 @@ datetime_format(). They are case‑sensitive.
 Unrecognized specifiers cause the function to return DATE_ERR_FORMAT.
 
 Example format strings:
-    "%Y-%m-%d"        → "2026-05-06"
-    "%d/%m/%Y"        → "06/05/2026"
-    "%A, %B %d, %Y"   → "Wednesday, May 06, 2026"
-    "%Y-%m-%dT%H:%M:%S%z" → "2026-05-06T14:30:45+0700"
+"%Y-%m-%d" → "2026-05-06"
+"%d/%m/%Y" → "06/05/2026"
+"%A, %B %d, %Y" → "Wednesday, May 06, 2026"
+"%Y-%m-%dT%H:%M:%S%z" → "2026-05-06T14:30:45+0700"
 
-================================================================================
-8. FULL USAGE EXAMPLES
+================================================================================ 8. FULL USAGE EXAMPLES
 ================================================================================
 
 Example 1: Countdown to New Year
@@ -563,8 +573,7 @@ Example 4: Format current time in several timezones
         return 0;
     }
 
-================================================================================
-9. THREAD SAFETY
+================================================================================ 9. THREAD SAFETY
 ================================================================================
 
 - The library does not use any internal static buffers for formatting;
@@ -579,43 +588,41 @@ Example 4: Format current time in several timezones
 - Functions that do not modify global state (all except time functions)
   are trivially thread‑safe.
 
-================================================================================
-10. FREQUENTLY ASKED QUESTIONS (FAQ)
+================================================================================ 10. FREQUENTLY ASKED QUESTIONS (FAQ)
 ================================================================================
 
 Q: Why does the parser expect day‑month‑year and not year‑month‑day?
 A: The library was originally designed for locales where day‑month‑year
-   is common. If you need a different order, you can either rearrange the
-   fields after parsing or write a small wrapper.
+is common. If you need a different order, you can either rearrange the
+fields after parsing or write a small wrapper.
 
 Q: Is there support for dates before 1900?
 A: No. The valid range is 1900‑01‑01 to 9999‑12‑31. Attempting to use dates
-   outside this range results in an error.
+outside this range results in an error.
 
 Q: Can I use this library in an embedded project?
 A: Yes. The code is pure C99, uses no dynamic memory allocation (you provide
-   all buffers), and can be compiled with minimal standard library support.
+all buffers), and can be compiled with minimal standard library support.
 
 Q: How does the library handle leap seconds?
 A: It doesn't. The library works with calendar days; leap seconds are
-   irrelevant for date calculations.
+irrelevant for date calculations.
 
 Q: The 'datetime_format' function doesn't support my custom format. What can I do?
 A: You can extend src/fmt.c by adding a new case for your specifier.
-   Contributions are welcome.
+Contributions are welcome.
 
 Q: Why does the library not use time_t internally for date differences?
 A: To avoid the Year 2038 problem on systems with 32‑bit time_t, the library
-   uses its own epoch (1900‑01‑01) and int64_t arithmetic, ensuring safe
-   calculations up to year 9999.
+uses its own epoch (1900‑01‑01) and int64_t arithmetic, ensuring safe
+calculations up to year 9999.
 
 Q: How do I link against the shared library?
 A: After installation (cmake --install), use -lcdaydiff. Your linker will
-   pick up the shared library if available. If you want to force static
-   linking, use -l:libcdaydiff.a or link the .a file directly.
+pick up the shared library if available. If you want to force static
+linking, use -l:libcdaydiff.a or link the .a file directly.
 
-================================================================================
-11. CONTRIBUTING
+================================================================================ 11. CONTRIBUTING
 ================================================================================
 
 Contributions are highly appreciated. To contribute:
@@ -631,17 +638,15 @@ Contributions are highly appreciated. To contribute:
 By submitting code, you agree that your contributions will be licensed
 under the same GPL‑3.0 license.
 
-================================================================================
-12. LICENSE
+================================================================================ 12. LICENSE
 ================================================================================
 
 This project is released under the GNU General Public License version 3.
 See the file LICENSE in the repository for the full license text.
 
-================================================================================
-13. CONTACT
+================================================================================ 13. CONTACT
 ================================================================================
 
 - Repository: https://github.com/mroczect/libcdaydiff
-- Issues:     https://github.com/mroczect/libcdaydiff/issues
-- Author:     mroczect
+- Issues: https://github.com/mroczect/libcdaydiff/issues
+- Author: mroczect
