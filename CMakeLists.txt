@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.10)
-project(libcdaydiff VERSION 1.0.4 LANGUAGES C)
+project(libcdaydiff VERSION 1.0.5 LANGUAGES C)
 
 # C99 standard
 set(CMAKE_C_STANDARD 99)
