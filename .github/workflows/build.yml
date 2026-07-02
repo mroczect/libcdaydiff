@@ -1,9 +1,9 @@
 # -------------------------------------------------------------------
-# GitHub Actions workflow for libcdaydiff
+# GitHub Actions workflow for libcdaydiff  (CMake version)
 # -------------------------------------------------------------------
-# Builds and tests the static library on Linux (64/32), macOS (64/ARM),
-# Windows (64/32 via MSYS2). On version tags (v*) all artifacts are
-# published as a GitHub Release with a SHA256SUMS for integrity.
+# Builds, tests, and publishes the static library on Linux (64/32),
+# macOS (x86_64 / arm64), and Windows (64/32 via MSYS2).
+# On version tags (v*) a GitHub Release is created automatically.
 # -------------------------------------------------------------------
 
 name: Build, Test, and Release
@@ -21,7 +21,7 @@ jobs:
   # ===================================================================
   build:
     strategy:
-      fail-fast: false # continue other builds even if one fails
+      fail-fast: false
       matrix:
         include:
           # ---------- Linux 64‑bit ----------
@@ -32,7 +32,7 @@ jobs:
             msystem: ""
             extra-setup: ""
 
-          # ---------- Linux 32‑bit (cross‑compile) ----------
+          # ---------- Linux 32‑bit (multilib cross‑compile) ----------
           - os: ubuntu-latest
             arch: i686
             artifact: libcdaydiff-linux-i686
@@ -40,16 +40,16 @@ jobs:
             msystem: ""
             extra-setup: "sudo apt-get update && sudo apt-get install -y gcc-multilib"
 
-          # ---------- macOS x86_64 ----------
-          - os: macos-latest
+          # ---------- macOS x86_64 (Intel) ----------
+          - os: macos-13 # Intel runner
             arch: x86_64
             artifact: libcdaydiff-macos-x86_64
-            cflags: ""
+            cflags: "-arch x86_64"
             msystem: ""
             extra-setup: ""
 
-          # ---------- macOS ARM64 ----------
-          - os: macos-latest
+          # ---------- macOS ARM64 (Apple Silicon) ----------
+          - os: macos-latest # ARM runner
             arch: arm64
             artifact: libcdaydiff-macos-arm64
             cflags: "-arch arm64"
@@ -92,7 +92,7 @@ jobs:
           install: >-
             base-devel
             mingw-w64-${{ matrix.arch }}-gcc
-            mingw-w64-${{ matrix.arch }}-make
+            mingw-w64-${{ matrix.arch }}-cmake
           update: true
           path-type: strict
 
@@ -101,26 +101,35 @@ jobs:
         run: ${{ matrix.extra-setup }}
 
       # ============================================================
-      # Build library
+      # Build static library + unit test binary
       # ============================================================
 
-      - name: Build library (Linux/macOS)
+      - name: Configure CMake (Linux/macOS)
         if: runner.os != 'Windows'
-        env:
-          EXTRA_CFLAGS: ${{ matrix.cflags }}
         run: |
-          make CC=gcc CFLAGS="-Wall -Wextra -O2 -g -std=c99 \
-            -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE $EXTRA_CFLAGS"
+          cmake -B build \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_FLAGS="-O2 -g ${{ matrix.cflags }}" \
+            -DBUILD_SHARED_LIBS=OFF
 
-      - name: Build library (Windows MSYS2)
+      - name: Build (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: cmake --build build --target cdaydiff_static test_date
+
+      - name: Configure CMake (Windows MSYS2)
         if: runner.os == 'Windows'
         shell: msys2 {0}
-        env:
-          EXTRA_CFLAGS: ${{ matrix.cflags }}
         run: |
-          # `make` uses the MinGW gcc from the MSYS2 environment
-          make CC=gcc CFLAGS="-Wall -Wextra -O2 -g -std=c99 \
-            -D_POSIX_C_SOURCE=200809L -D_DEFAULT_SOURCE $EXTRA_CFLAGS"
+          cmake -B build \
+            -G "MSYS Makefiles" \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_C_FLAGS="-O2 -g ${{ matrix.cflags }}" \
+            -DBUILD_SHARED_LIBS=OFF
+
+      - name: Build (Windows MSYS2)
+        if: runner.os == 'Windows'
+        shell: msys2 {0}
+        run: cmake --build build --target cdaydiff_static test_date
 
       # ============================================================
       # Run unit tests
@@ -128,20 +137,12 @@ jobs:
 
       - name: Run unit tests (Linux/macOS)
         if: runner.os != 'Windows'
-        env:
-          EXTRA_CFLAGS: ${{ matrix.cflags }}
-        run: |
-          gcc -std=c99 -Isrc/include test.c libcdaydiff.a -o test $EXTRA_CFLAGS
-          ./test
+        run: ./build/test_date
 
       - name: Run unit tests (Windows MSYS2)
         if: runner.os == 'Windows'
         shell: msys2 {0}
-        env:
-          EXTRA_CFLAGS: ${{ matrix.cflags }}
-        run: |
-          gcc -std=c99 -Isrc/include test.c libcdaydiff.a -o test.exe $EXTRA_CFLAGS
-          ./test.exe
+        run: ./build/test_date.exe
 
       # ============================================================
       # Prepare and upload artifact
@@ -150,12 +151,13 @@ jobs:
       - name: Prepare artifact folder
         run: |
           mkdir -p artifact
-          # Make sure the static library exists
-          if [ ! -f libcdaydiff.a ]; then
+          # Pastikan static library ada
+          if [ ! -f build/libcdaydiff.a ]; then
             echo "ERROR: libcdaydiff.a not found!" >&2
             exit 1
           fi
-          cp libcdaydiff.a artifact/
+          cp build/libcdaydiff.a artifact/
+          cp src/include/libcdaydiff.h artifact/
           echo "Platform: ${{ matrix.artifact }}" > artifact/PLATFORM.txt
 
       - name: Upload build artifact
@@ -164,14 +166,9 @@ jobs:
           name: ${{ env.ARTIFACT_NAME }}
           path: artifact/
 
-      - name: Clean up (Linux/macOS)
-        if: runner.os != 'Windows'
-        run: make clean
-
-      - name: Clean up (Windows MSYS2)
-        if: runner.os == 'Windows'
-        shell: msys2 {0}
-        run: make clean
+      # Optional: bersihkan (tidak wajib, workspace akan di-reset)
+      # - name: Clean
+      #   run: rm -rf build
 
   # ===================================================================
   # Release Job (only on version tags)
@@ -218,24 +215,24 @@ jobs:
           body: |
             ## libcdaydiff Release ${{ github.ref_name }}
 
-            Pre‑built **static library** (`libcdaydiff.a`) for:
+            Pre‑built **static library** (`libcdaydiff.a`) + header for:
 
             - **Linux** (x86_64, i686)
             - **macOS** (x86_64, ARM64)
             - **Windows** (x86_64, i686) via MinGW‑w64
 
-            All builds are compiled with `-O2` and include debug symbols.
+            All builds compiled with `-O2 -g` (optimised + debug symbols).
 
             ### How to use
             1. Download the ZIP for your platform.
-            2. Extract `libcdaydiff.a` and the `libcdaydiff.h` header (from the source tree).
+            2. Extract `libcdaydiff.a` and `libcdaydiff.h`.
             3. Compile your program:
                ```bash
-               gcc -std=c99 -I/path/to/header -L. myapp.c -lcdaydiff -o myapp
+               gcc -std=c99 -I. myapp.c libcdaydiff.a -o myapp
                ```
 
             ### Integrity
-            Verify downloads with the `SHA256SUMS` file:
+            Verify the downloaded files with:
             ```bash
             sha256sum -c SHA256SUMS
             ```
