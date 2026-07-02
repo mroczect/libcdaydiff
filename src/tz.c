@@ -8,10 +8,8 @@ static int compute_local_offset(void) {
     return 0;
 
   struct tm utc, local;
-  gmtime_r(&t, &utc);
-  localtime_r(&t, &local);
-
-  return (int)(local.tm_gmtoff / 60);
+  GMTIME_R(&t, &utc);
+  LOCALTIME_R(&t, &local);
   int offset_min =
       (local.tm_hour - utc.tm_hour) * 60 + (local.tm_min - utc.tm_min);
   int day_diff = local.tm_yday - utc.tm_yday;
@@ -26,7 +24,7 @@ int date_now_utc(Date *out) {
     return DATE_ERR_NULL_POINTER;
   time_t t = time(NULL);
   struct tm tm;
-  gmtime_r(&t, &tm);
+  GMTIME_R(&t, &tm);
   out->day = tm.tm_mday;
   out->month = tm.tm_mon + 1;
   out->year = tm.tm_year + 1900;
@@ -38,7 +36,7 @@ int date_now(Date *out) {
     return DATE_ERR_NULL_POINTER;
   time_t t = time(NULL);
   struct tm tm;
-  localtime_r(&t, &tm);
+  LOCALTIME_R(&t, &tm);
   out->day = tm.tm_mday;
   out->month = tm.tm_mon + 1;
   out->year = tm.tm_year + 1900;
@@ -50,7 +48,7 @@ int datetime_now_utc(DateTime *out) {
     return DATE_ERR_NULL_POINTER;
   time_t t = time(NULL);
   struct tm tm;
-  gmtime_r(&t, &tm);
+  GMTIME_R(&t, &tm);
   out->date.day = tm.tm_mday;
   out->date.month = tm.tm_mon + 1;
   out->date.year = tm.tm_year + 1900;
@@ -66,7 +64,7 @@ int datetime_now(DateTime *out) {
     return DATE_ERR_NULL_POINTER;
   time_t t = time(NULL);
   struct tm tm;
-  localtime_r(&t, &tm);
+  LOCALTIME_R(&t, &tm);
   out->date.day = tm.tm_mday;
   out->date.month = tm.tm_mon + 1;
   out->date.year = tm.tm_year + 1900;
@@ -84,7 +82,7 @@ int datetime_now_tz(DateTime *out, int offset_minutes) {
   int64_t epoch_secs = (int64_t)t + (int64_t)offset_minutes * 60;
   time_t adj = (time_t)epoch_secs;
   struct tm tm_adj;
-  gmtime_r(&adj, &tm_adj);
+  GMTIME_R(&adj, &tm_adj);
   out->date.day = tm_adj.tm_mday;
   out->date.month = tm_adj.tm_mon + 1;
   out->date.year = tm_adj.tm_year + 1900;

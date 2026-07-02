@@ -45,9 +45,9 @@ int date_from_epoch_local(int64_t epoch_secs, Date *out) {
 int _get_local_timezone_offset_minutes(void) {
   time_t t = time(NULL);
   struct tm utc, local;
-  gmtime_r(&t, &utc);
-  localtime_r(&t, &local);
-  return (int)(local.tm_gmtoff / 60);
+  GMTIME_R(&t, &utc);
+  LOCALTIME_R(&t, &local);
+
   int off = (local.tm_hour - utc.tm_hour) * 60 + (local.tm_min - utc.tm_min);
   int day_diff = local.tm_yday - utc.tm_yday;
   if (day_diff < -1)
