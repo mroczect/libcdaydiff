@@ -8,24 +8,38 @@ on:
   push:
     branches: [master]
     paths:
-      - 'docs/**'
-  workflow_dispatch:
+      - 'docs/**'             # hanya terpicu jika ada perubahan di folder docs
+  workflow_dispatch:          # bisa dijalankan manual dari tab Actions
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pages: write
-      id-token: write
+      pages: write            # untuk deploy ke GitHub Pages
+      id-token: write         # untuk autentikasi OIDC (tanpa token manual)
+
+    # opsional: deklarasikan environment untuk mendapatkan URL deployment
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
     steps:
       - name: Checkout repository
-        uses: actions/checkout@v7
+        uses: actions/checkout@v4   # versi terbaru adalah v4, bukan v7
+
+      # ------------------------------------------------------------------
+      # Penting: file .nojekyll mencegah GitHub Pages mencoba memproses
+      # situs statis dengan Jekyll. Docsify tidak memerlukan Jekyll.
+      # ------------------------------------------------------------------
+      - name: Create .nojekyll file
+        run: touch docs/.nojekyll
 
       - name: Upload static files as artifact
-        uses: actions/upload-pages-artifact@v5
+        uses: actions/upload-pages-artifact@v3   # versi terbaru v3
         with:
-          path: docs/
+          path: docs/               # folder yang berisi index.html + semua markdown
 
       - name: Deploy to GitHub Pages
-        uses: actions/deploy-pages@v5
+        id: deployment
+        uses: actions/deploy-pages@v4   # versi terbaru v4
