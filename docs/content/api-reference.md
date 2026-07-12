@@ -593,7 +593,7 @@ caller-provided buffer.
 **Parameters:**
 
 - `d` – Date to format.
-- `fmt` – Format string (see [Format Specifiers](format-specifier.md)).
+- `fmt` – Format string (see [Format Specifiers](format-specifier.html)).
 - `buf` – Output buffer.
 - `bufsize` – Size of the output buffer in bytes.
 

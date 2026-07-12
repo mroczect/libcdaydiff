@@ -211,4 +211,4 @@ Feature requests are welcome. Open an issue and describe:
 
 By contributing, you agree that your code will be distributed under the same
 GNU General Public License v3.0 that covers the project. See the
-[LICENSE](license.md) file for the full text.
+[LICENSE](license.html) file for the full text.

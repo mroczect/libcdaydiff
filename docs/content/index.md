@@ -28,4 +28,4 @@ compiles on any platform.
 - Clear error codes and messages
 - Thread-safe design
 
-[Get Started](quick-start.md)
+[Get Started](quick-start.html)

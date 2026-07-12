@@ -21,7 +21,7 @@ the GitHub repository:
   to report a bug or suggest an improvement.
 - **Pull Requests**: Submit code changes via
   [pull requests](https://github.com/mroczect/libcdaydiff/pulls). See the
-  [Contributing Guide](contributing.md) for guidelines.
+  [Contributing Guide](contributing.html) for guidelines.
 
 ## Discussions
 

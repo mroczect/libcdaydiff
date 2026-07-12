@@ -113,9 +113,9 @@ Date: Wednesday, 06 May 2026
 
 ## Next Steps
 
-- Read the [API Reference](api-reference.md) for a complete list of
+- Read the [API Reference](api-reference.html) for a complete list of
   functions.
-- See more [Examples](example.md) covering timezones, epoch conversion,
+- See more [Examples](example.html) covering timezones, epoch conversion,
   and date arithmetic.
-- Review [Installation](installation.md) for detailed platform-specific
+- Review [Installation](installation.html) for detailed platform-specific
   instructions.

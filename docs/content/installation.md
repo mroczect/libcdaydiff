@@ -377,9 +377,9 @@ MSYS2, Cygwin, or Chocolatey (`choco install make`).
 
 ## Next Steps
 
-- Follow the [Quick Start Guide](quick-start.md) to write your first program.
-- Browse the [API Reference](api-reference.md) for complete function documentation.
-- See [Examples](example.md) for more advanced usage scenarios.
+- Follow the [Quick Start Guide](quick-start.html) to write your first program.
+- Browse the [API Reference](api-reference.html) for complete function documentation.
+- See [Examples](example.html) for more advanced usage scenarios.
 
 ```
 
