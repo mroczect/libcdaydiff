@@ -1,3 +1,10 @@
+---
+title: "License"
+desc: "GNU General Public License v3.0 for libcdaydiff"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # License
 
 > _This project is released under the **GNU General Public License version 3**.

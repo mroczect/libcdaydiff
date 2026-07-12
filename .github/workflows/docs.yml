@@ -1,45 +1,63 @@
-# -------------------------------------------------------------------
-# Docsify Documentation → GitHub Pages
-# Publishes the docs/ folder automatically on push to master
-# -------------------------------------------------------------------
-name: Deploy Documentation
+name: Deploy Docs (libcdaydiff)
 
 on:
   push:
-    branches: [master]
-    paths:
-      - 'docs/**'             # hanya terpicu jika ada perubahan di folder docs
-  workflow_dispatch:          # bisa dijalankan manual dari tab Actions
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: false
 
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      pages: write            # untuk deploy ke GitHub Pages
-      id-token: write         # untuk autentikasi OIDC (tanpa token manual)
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-    # opsional: deklarasikan environment untuk mendapatkan URL deployment
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      - name: Get latest RawSSG release
+        id: rawssg
+        run: |
+          REPO="mroczect/rawssg"
+          TAG=$(curl -s "https://api.github.com/repos/${REPO}/releases/latest" | jq -r .tag_name)
+          echo "Latest RawSSG release: $TAG"
+          echo "tag=$TAG" >> $GITHUB_OUTPUT
+
+      - name: Download RawSSG binary
+        run: |
+          curl -fsSL "https://github.com/mroczect/rawssg/releases/download/${{ steps.rawssg.outputs.tag }}/rawssg-ubuntu-latest.tar.gz" -o rawssg.tar.gz
+          tar -xzf rawssg.tar.gz
+          chmod +x rawssg
+          sudo mv rawssg /usr/local/bin/
+
+      - name: Build documentation
+        working-directory: docs
+        run: rawssg compile
+
+      - name: List generated files (debug)
+        run: ls -la docs/dist/
+
+      - name: Upload artifact to Pages
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: docs/dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
-
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4   # versi terbaru adalah v4, bukan v7
-
-      # ------------------------------------------------------------------
-      # Penting: file .nojekyll mencegah GitHub Pages mencoba memproses
-      # situs statis dengan Jekyll. Docsify tidak memerlukan Jekyll.
-      # ------------------------------------------------------------------
-      - name: Create .nojekyll file
-        run: touch docs/.nojekyll
-
-      - name: Upload static files as artifact
-        uses: actions/upload-pages-artifact@v3   # versi terbaru v3
-        with:
-          path: docs/               # folder yang berisi index.html + semua markdown
-
       - name: Deploy to GitHub Pages
         id: deployment
-        uses: actions/deploy-pages@v4   # versi terbaru v4
+        uses: actions/deploy-pages@v4

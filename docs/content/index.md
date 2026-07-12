@@ -1,3 +1,10 @@
+---
+title: "libcdaydiff"
+desc: "Portable C99 Date & Time Library"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # libcdaydiff
 
 > Portable C99 Date & Time Library
@@ -21,4 +28,4 @@ compiles on any platform.
 - Clear error codes and messages
 - Thread-safe design
 
-[Get Started](pages/quick-start.md)
+[Get Started](quick-start.md)

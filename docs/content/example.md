@@ -1,3 +1,10 @@
+---
+title: "Examples"
+desc: "Practical usage examples for libcdaydiff"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # Full Examples
 
 This page demonstrates practical uses of the `libcdaydiff` library.

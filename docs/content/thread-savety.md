@@ -1,3 +1,10 @@
+---
+title: "Thread Safety Notes"
+desc: "Thread safety guarantees and limitations of libcdaydiff"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # Thread Safety Notes
 
 This page describes the thread safety guarantees (and limitations) of the

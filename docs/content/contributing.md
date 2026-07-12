@@ -1,3 +1,10 @@
+---
+title: "Contributing Guide"
+desc: "How to contribute to libcdaydiff"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # Contributing Guide
 
 Thank you for your interest in contributing to `libcdaydiff`. This document
@@ -179,7 +186,7 @@ Before submitting, verify that:
       part of the public API.
 - [ ] New internal helpers are declared in
       `src/internal/libcdaydiff_internal.h`.
-- [ ] Documentation pages (if any) are updated in `docs/pages/`.
+- [ ] Documentation pages (if any) are updated in `docs/`.
 - [ ] No trailing whitespace or unrelated formatting changes.
 
 ## Reporting Bugs
@@ -204,4 +211,4 @@ Feature requests are welcome. Open an issue and describe:
 
 By contributing, you agree that your code will be distributed under the same
 GNU General Public License v3.0 that covers the project. See the
-[LICENSE](pages/license.md) file for the full text.
+[LICENSE](license.md) file for the full text.

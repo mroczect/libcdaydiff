@@ -1,3 +1,10 @@
+---
+title: "Quick Start Guide"
+desc: "Get started with libcdaydiff in minutes"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # Quick Start Guide
 
 This guide will help you get `libcdaydiff` up and running in your C project
@@ -106,9 +113,9 @@ Date: Wednesday, 06 May 2026
 
 ## Next Steps
 
-- Read the [API Reference](pages/api-reference.md) for a complete list of
+- Read the [API Reference](api-reference.md) for a complete list of
   functions.
-- See more [Examples](pages/example.md) covering timezones, epoch conversion,
+- See more [Examples](example.md) covering timezones, epoch conversion,
   and date arithmetic.
-- Review [Installation](pages/installation.md) for detailed platform-specific
+- Review [Installation](installation.md) for detailed platform-specific
   instructions.

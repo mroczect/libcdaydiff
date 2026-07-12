@@ -1,3 +1,10 @@
+---
+title: "Installation Guide"
+desc: "How to build and install libcdaydiff on various platforms"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # Installation Guide
 
 This guide provides detailed instructions for building and installing
@@ -370,9 +377,9 @@ MSYS2, Cygwin, or Chocolatey (`choco install make`).
 
 ## Next Steps
 
-- Follow the [Quick Start Guide](pages/quick-start.md) to write your first program.
-- Browse the [API Reference](pages/api-reference.md) for complete function documentation.
-- See [Examples](pages/example.md) for more advanced usage scenarios.
+- Follow the [Quick Start Guide](quick-start.md) to write your first program.
+- Browse the [API Reference](api-reference.md) for complete function documentation.
+- See [Examples](example.md) for more advanced usage scenarios.
 
 ```
 

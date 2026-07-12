@@ -1,3 +1,10 @@
+---
+title: "API Reference"
+desc: "Complete API documentation for libcdaydiff"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # API Reference
 
 Complete documentation for the `libcdaydiff` C library.

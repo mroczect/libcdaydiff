@@ -1,3 +1,10 @@
+---
+title: "Format Specifiers"
+desc: "Complete format specifier reference for date and datetime formatting"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # Format Specifiers
 
 This page describes all format specifiers supported by `date_format()` and

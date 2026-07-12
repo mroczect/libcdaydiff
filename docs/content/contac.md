@@ -1,3 +1,10 @@
+---
+title: "Contact"
+desc: "Get in touch with libcdaydiff maintainer"
+author: "mroczect"
+license: "GPL-3.0"
+---
+
 # Contact
 
 If you have questions, suggestions, or need help with `libcdaydiff`, there are
