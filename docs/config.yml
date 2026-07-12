@@ -7,6 +7,7 @@ site_name: "libcdaydiff"
 base_url: "https://mroczect.github.io/libcdaydiff/"
 content_dir: "content"
 output_dir: "dist"
+# assets_dir: "assets"   # (opsional) jika ada folder assets seperti css/js
 navbar:
   - label: Home
     url: index.html
@@ -25,29 +26,19 @@ navbar:
   - label: Contact
     url: contac.html
 sidebar:
-  - label: Getting Started
-    items:
-      - label: Home
-        url: index.html
-      - label: Quick Start
-        url: quick-start.html
-      - label: Installation
-        url: installation.html
-  - label: Documentation
-    items:
-      - label: API Reference
-        url: api-reference.html
-      - label: Format Specifiers
-        url: format-specifier.html
-      - label: Examples
-        url: example.html
-      - label: Thread Safety
-        url: thread-savety.html
-  - label: Project
-    items:
-      - label: Contributing
-        url: contributing.html
-      - label: License
-        url: license.html
-      - label: Contact
-        url: contac.html
+  - label: Home
+    url: index.html
+  - label: Quick Start
+    url: quick-start.html
+  - label: API Reference
+    url: api-reference.html
+  - label: Examples
+    url: example.html
+  - label: Installation
+    url: installation.html
+  - label: Contributing
+    url: contributing.html
+  - label: License
+    url: license.html
+  - label: Contact
+    url: contac.html
